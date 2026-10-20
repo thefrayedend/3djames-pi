@@ -49,6 +49,7 @@ jobs:
       - name: Build the SD card image
         run: |
           sudo bash appliance/build-image.sh --base "$BASE_FILE" --name 3djames-orangepi-zero4 --out "$GITHUB_WORKSPACE/out"
+          sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE/out"
           V="$(cat server/VERSION)"
           (cd server && zip -qr "$GITHUB_WORKSPACE/out/3djames-server-$V.zip" . -x '__pycache__/*' 'testdata/*')
           ls -lh out
