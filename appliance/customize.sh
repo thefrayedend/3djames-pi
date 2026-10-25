@@ -149,6 +149,17 @@ if [ -f /etc/network/interfaces ]; then
   sed -i -E '/^\s*(auto|allow-hotplug)\s+wlan[0-9]+/d; /^\s*iface\s+wlan[0-9]+/,/^\s*$/d' /etc/network/interfaces || true
 fi
 
+# ---------------------------------------------------------------- self-test (the build fails if any of this is wrong)
+# The admin page runs the root helper as the service user, through sudo, with no password: try exactly that.
+log "Self-test: the service user can run the root helper"
+out=$(runuser -u threedjames -- sudo -n /usr/local/sbin/3djames-helper build-selftest 2>&1 || true)
+echo "$out" | grep -q 'unknown command build-selftest' || { echo "[customize] ERROR: the server can't run its helper through sudo: $out"; exit 1; }
+for f in /etc/sudoers.d /etc/sudoers.d/3djames /usr/local/sbin/3djames-helper /usr/local/lib/3djames/tdjsys.py /opt/3djames/server/3djames_server.py; do
+  [ "$(stat -c %u "$f")" = 0 ] || { echo "[customize] ERROR: $f does not belong to root"; exit 1; }
+done
+command -v mount.cifs >/dev/null || { echo "[customize] ERROR: mount.cifs is missing (NAS shares need cifs-utils)"; exit 1; }
+log "Self-test passed"
+
 # ---------------------------------------------------------------- tidy up
 restore_apt; trap - EXIT
 apt-get clean
