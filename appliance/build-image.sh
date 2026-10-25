@@ -215,6 +215,7 @@ if [ "$SKIP_CUSTOMIZE" = 0 ]; then
   cp -L /etc/resolv.conf "$MNT/etc/resolv.conf"
   printf '#!/bin/sh\nexit 101\n' > "$MNT/usr/sbin/policy-rc.d"; chmod 755 "$MNT/usr/sbin/policy-rc.d"
   install -m 755 "$HERE/customize.sh" "$MNT/tmp/customize.sh"
+  install -m 644 "$HERE/selftest-nas.py" "$MNT/tmp/selftest-nas.py"
   # Clean environment inside the image; only proxy settings are passed through.
   CENV=(PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin HOME=/root LANG=C.UTF-8 TERM=dumb)
   for v in http_proxy https_proxy no_proxy HTTP_PROXY HTTPS_PROXY NO_PROXY; do
@@ -225,7 +226,7 @@ if [ "$SKIP_CUSTOMIZE" = 0 ]; then
     CENV+=(PIP_CERT=/tmp/extra-ca.crt SSL_CERT_FILE=/tmp/extra-ca.crt REQUESTS_CA_BUNDLE=/tmp/extra-ca.crt)
   fi
   chroot "$MNT" /usr/bin/env -i "${CENV[@]}" /bin/bash /tmp/customize.sh
-  rm -f "$MNT/usr/sbin/policy-rc.d" "$MNT/tmp/customize.sh" "$MNT/tmp/extra-ca.crt" "$MNT/etc/resolv.conf"
+  rm -f "$MNT/usr/sbin/policy-rc.d" "$MNT/tmp/customize.sh" "$MNT/tmp/selftest-nas.py" "$MNT/tmp/extra-ca.crt" "$MNT/etc/resolv.conf"
   [ -n "$RESOLV_BAK" ] && mv "$RESOLV_BAK" "$MNT/etc/resolv.conf"
   umount "$MNT/dev/pts" "$MNT/dev" "$MNT/proc" "$MNT/sys"
 else
