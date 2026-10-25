@@ -248,10 +248,14 @@ cat > "$SMBT/smb.conf" <<EOF
   read only = no
   guest ok = yes
   force user = nobody
+  create mask = 0666
+  force create mode = 0666
+  directory mask = 0777
+  force directory mode = 0777
 EOF
 printf 'nas-pass1\nnas-pass1\n' | smbpasswd -c "$SMBT/smb.conf" -s -a tdjnas >/dev/null
-smbd -s "$SMBT/smb.conf" --foreground --no-process-group </dev/null >"$SMBT/smbd.out" 2>&1 &
-SMBD=$!
+# in its own process group: smbd stops its whole group when it ends, which would otherwise be this build
+setsid smbd -s "$SMBT/smb.conf" --foreground </dev/null >"$SMBT/smbd.out" 2>&1 &
 python3 -c "
 import socket, time
 for _ in range(60):
@@ -265,7 +269,7 @@ chmod 644 /tmp/selftest-nas.py
 nas_ok=1
 runuser -u threedjames -- python3 /tmp/selftest-nas.py 127.0.0.1 test --user tdjnas --password nas-pass1 || nas_ok=0
 runuser -u threedjames -- python3 /tmp/selftest-nas.py 127.0.0.1 open "3D Objects" || nas_ok=0
-kill "$SMBD" 2>/dev/null || true; wait "$SMBD" 2>/dev/null || true
+kill "$(cat "$SMBT/state/smbd.pid" 2>/dev/null)" 2>/dev/null || pkill -f "smbd -s $SMBT/smb.conf" 2>/dev/null || true; sleep 1
 [ "$nas_ok" = 1 ] || { cat "$SMBT"/log.* 2>/dev/null | tail -60; echo "[customize] ERROR: saving to a NAS share does not work in this image"; exit 1; }
 userdel tdjnas 2>/dev/null || true
 rm -rf "$SMBT" /tmp/selftest-nas.py

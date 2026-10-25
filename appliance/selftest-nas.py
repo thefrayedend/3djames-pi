@@ -95,7 +95,7 @@ def main():
         st, got, h = app.call('GET', '/api/file?folder=f0&path=bracket.3dj', raw=True)
         check('Open: the same bytes come back, with the same version tag', st == 200 and got == body and h.get('ETag') == tag, (st, len(got), h.get('ETag'), tag))
         st, j, _ = app.call('GET', '/api/list?folder=f0&path=')
-        check('the folder lists the file with its size', [(e['name'], e['size']) for e in j['entries']] == [('bracket.3dj', len(body))], j)
+        check('the folder lists the file with its size', [(e['name'], e['size']) for e in j.get('entries', [])] == [('bracket.3dj', len(body))], j)
         st, j, _ = app.call('PUT', '/api/file?folder=f0&path=bracket.3dj', body, {'If-Match': 'new'})
         check('Save as onto a name that exists is refused (conflict)', st == 409, j)
         body2 = body[::-1]
@@ -111,7 +111,7 @@ def main():
         check('make a folder (two deep)', st == 200, j)
         st, j, _ = app.call('PUT', '/api/file?folder=f0&path=Parts/Brackets/a%20b.3dj', b'x' * 10, {'If-Match': 'new'})
         st, j, _ = app.call('GET', '/api/list?folder=f0&path=Parts/Brackets')
-        check('save into it (name with a space) and list it', [e['name'] for e in j['entries']] == ['a b.3dj'], j)
+        check('save into it (name with a space) and list it', [e['name'] for e in j.get('entries', [])] == ['a b.3dj'], j)
         st, j, _ = app.call('POST', '/api/presence', {'folder': 'f0', 'path': 'bracket.3dj'})
         check('"someone else has it open" works on the NAS', st == 200, j)
         for bad in ('../x.3dj', 'Parts/../../x.3dj', '.hidden', 'a:b.3dj', 'C:\\x.3dj'):
@@ -121,7 +121,7 @@ def main():
             st, j, _ = app.call('POST', '/api/delete', {'folder': 'f0', 'path': name})
             check(f'delete {name}', st == 200, j)
         st, j, _ = app.call('GET', '/api/list?folder=f0&path=')
-        check('only the empty Parts folder is left', [e['name'] for e in j['entries']] == ['Parts'], j)
+        check('only the empty Parts folder is left', [e['name'] for e in j.get('entries', [])] == ['Parts'], j)
     finally:
         # tidy up the NAS: the test folder and everything left in it
         try:
