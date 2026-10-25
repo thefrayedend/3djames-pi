@@ -269,7 +269,7 @@ chmod 644 /tmp/selftest-nas.py
 nas_ok=1
 runuser -u threedjames -- python3 /tmp/selftest-nas.py 127.0.0.1 test --user tdjnas --password nas-pass1 || nas_ok=0
 runuser -u threedjames -- python3 /tmp/selftest-nas.py 127.0.0.1 open "3D Objects" || nas_ok=0
-kill "$(cat "$SMBT/state/smbd.pid" 2>/dev/null)" 2>/dev/null || pkill -f "smbd -s $SMBT/smb.conf" 2>/dev/null || true; sleep 1
+for p in /proc/[0-9]*; do grep -qa "$SMBT/smb.conf" "$p/cmdline" 2>/dev/null && kill "${p#/proc/}" 2>/dev/null; done; sleep 1  # stop the test share
 [ "$nas_ok" = 1 ] || { cat "$SMBT"/log.* 2>/dev/null | tail -60; echo "[customize] ERROR: saving to a NAS share does not work in this image"; exit 1; }
 userdel tdjnas 2>/dev/null || true
 rm -rf "$SMBT" /tmp/selftest-nas.py
