@@ -255,7 +255,7 @@ cat > "$SMBT/smb.conf" <<EOF
 EOF
 printf 'nas-pass1\nnas-pass1\n' | smbpasswd -c "$SMBT/smb.conf" -s -a tdjnas >/dev/null
 # in its own process group: smbd stops its whole group when it ends, which would otherwise be this build
-setsid smbd -s "$SMBT/smb.conf" --foreground </dev/null >"$SMBT/smbd.out" 2>&1 &
+setsid smbd -s "$SMBT/smb.conf" --foreground --no-process-group </dev/null >"$SMBT/smbd.out" 2>&1 &
 python3 -c "
 import socket, time
 for _ in range(60):
