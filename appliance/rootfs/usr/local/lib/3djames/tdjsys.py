@@ -460,7 +460,9 @@ def mount_place(pid):
             f.write(f"username={spec.get('username', '')}\npassword={spec.get('password', '')}\n")
             if spec.get("domain"):
                 f.write(f"domain={spec['domain']}\n")
-        base = f"credentials={cred_path},uid={uid},gid={gid},file_mode=0664,dir_mode=0775,iocharset=utf8,noperm,soft"
+        # no user name and no password: a share anyone may open (guest)
+        login = "guest" if not spec.get("username") and not spec.get("password") else f"credentials={cred_path}"
+        base = f"{login},uid={uid},gid={gid},file_mode=0664,dir_mode=0775,iocharset=utf8,noperm,soft"
         versions = [spec["vers"]] if spec.get("vers") else ["3.0", "2.1", "2.0", "1.0"]
         src = f"//{spec['server']}/{spec['share']}"
         err = ""

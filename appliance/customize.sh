@@ -89,6 +89,13 @@ install -d -o threedjames -g threedjames -m 775 /srv/3djames
 install -d -m 755 /var/lib/3djames-sys /tdjsetup /mnt/3djames
 install -d -m 700 /etc/3djames /etc/3djames/places
 chown -R root:root /opt/3djames
+# Every system file this image adds belongs to root (sudo refuses a sudoers folder owned by anyone else, and then the
+# server can't run its helper: no NAS shares, no Wi-Fi changes). Checked, so a broken image can't be shipped again.
+chown root:root /etc/sudoers.d /etc/sudoers.d/3djames /usr/local/sbin/3djames-helper
+chown -R root:root /usr/local/lib/3djames /etc/systemd/system/3djames*.service /etc/NetworkManager/conf.d /etc/NetworkManager/dnsmasq-shared.d /etc/avahi/services /etc/systemd/journald.conf.d
+chmod 755 /etc/sudoers.d /usr/local/sbin/3djames-helper; chmod 440 /etc/sudoers.d/3djames
+visudo -c >/dev/null || { echo "[customize] ERROR: the sudoers settings are not valid"; visudo -c; exit 1; }
+[ "$(stat -c %u /etc/sudoers.d)" = 0 ] && [ "$(stat -c %u /etc/sudoers.d/3djames)" = 0 ] || { echo "[customize] ERROR: /etc/sudoers.d must belong to root"; exit 1; }
 python3 -m py_compile /opt/3djames/server/3djames_server.py
 # Samba: off until the admin switches the update folder on
 mkdir -p /etc/samba

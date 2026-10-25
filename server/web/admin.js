@@ -143,7 +143,7 @@ function editPlace(id, newType) {
       fields.share = input({ value: p.share || '', placeholder: '3djames' }); fields.username = input({ value: p.username || '', autocapitalize: 'none' });
       fields.password = input({ type: 'password', placeholder: id ? 'leave empty to keep it' : '' }); fields.domain = input({ value: p.domain || '', placeholder: '(usually empty)' });
       fields.vers = h('select', {}, ['', '3.0', '2.1', '2.0', '1.0'].map((v) => h('option', { value: v, selected: (p.vers || '') === v }, v ? `SMB ${v}` : 'Automatic')));
-      body.push(h('div', { class: 'row' }, field('Share name', fields.share), field('NAS user name', fields.username), field('NAS password', fields.password)),
+      body.push(h('div', { class: 'row' }, field('Share name', fields.share), field('NAS user name', fields.username, 'Empty, with no password: a guest share.'), field('NAS password', fields.password)),
         h('div', { class: 'row' }, field('Domain / workgroup', fields.domain), field('SMB version', fields.vers, 'Leave on Automatic unless connecting fails.')),
         h('p', { class: 'muted' }, 'Tip: on the NAS, make a share (for example "3djames") and a NAS user just for this box with read and write access to it. Everyone\'s folders go inside that share; 3DJames keeps people out of each other\'s folders.'));
     } else {
