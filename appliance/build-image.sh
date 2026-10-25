@@ -180,10 +180,11 @@ echo "  root filesystem: $(. "$MNT/etc/os-release" 2>/dev/null; echo "${PRETTY_N
 # ----------------------------------------------------------------------------- payload
 say "Copying the 3DJames server"
 install -d "$MNT/opt/3djames/server" "$MNT/opt/3djames/app"
-rsync -a --delete --exclude '__pycache__' --exclude 'testdata' "$REPO/server/" "$MNT/opt/3djames/server/"
+# (--no-owner/--no-group: files belong to root in the image, never to the build machine's user)
+rsync -a --no-owner --no-group --delete --exclude '__pycache__' --exclude 'testdata' "$REPO/server/" "$MNT/opt/3djames/server/"
 if [ -n "$APP" ]; then install -m 644 "$APP" "$MNT/opt/3djames/app/3DJames.html"; echo "  app: $(basename "$APP")"; else echo "  no app file: the admin uploads 3DJames.html on the admin page"; fi
 install -m 644 "$REPO/LICENSE" "$MNT/opt/3djames/LICENSE" 2>/dev/null || true
-rsync -a --exclude '__pycache__' "$HERE/rootfs/" "$MNT/"
+rsync -a --no-owner --no-group --exclude '__pycache__' "$HERE/rootfs/" "$MNT/"
 chmod 440 "$MNT/etc/sudoers.d/3djames"
 chmod 755 "$MNT/usr/local/sbin/3djames-helper"
 git -C "$REPO" describe --always --dirty > "$MNT/opt/3djames/BUILD" 2>/dev/null || date -u +%Y%m%d > "$MNT/opt/3djames/BUILD"
